@@ -1,6 +1,8 @@
 // shema.rs
 use diesel::{table, Insertable};
 use serde::{Deserialize, Serialize};
+
+// les macros table! sont propre a Diesel
 // Définition de la table des nœuds de cluster
 table! {
     cluster_node (id) {
@@ -28,7 +30,7 @@ table! {
 
 // Structure pour configurer un cluster
 #[derive(Deserialize)]
-struct Config {
+pub struct Config {
     cluster_name: String,  // Nom du cluster
     talos_version: String,  // Version de Talos
     endpoint: String,  // Point de terminaison
@@ -39,13 +41,13 @@ struct Config {
 
 // Structure pour la configuration CNI
 #[derive(Deserialize)]
-struct CniConfig {
+pub struct CniConfig {
     name: String,  // Nom de la configuration CNI
 }
 
 // Structure représentant un nœud
 #[derive(Deserialize)]
-struct Node {
+pub struct Node {
     hostname: String,  // Nom d'hôte du nœud
     ip_address: String,  // Adresse IP
     control_plane: bool,  // Indicateur de plan de contrôle
@@ -57,7 +59,7 @@ struct Node {
 
 // Structure représentant une interface réseau
 #[derive(Serialize, Deserialize)]
-struct NetworkInterface {
+pub struct NetworkInterface {
     device_selector: DeviceSelector,  // Sélecteur de périphérique
     addresses: Vec<String>,  // Liste d'adresses
     routes: Vec<Route>,  // Routes associées
@@ -65,20 +67,20 @@ struct NetworkInterface {
 
 // Structure représentant une route
 #[derive(Serialize, Deserialize)]
-struct Route {
+pub struct Route {
     network: String,  // Réseau de la route
     gateway: String,  // Passerelle de la route
 }
 
 // Structure représentant un sélecteur de périphérique
 #[derive(Serialize, Deserialize)]
-struct DeviceSelector {
+pub struct DeviceSelector {
     driver: String,  // Driver du périphérique
 }
 
 // Structure pour ajouter une source de données
 #[derive(Deserialize)]
-struct Source {
+pub struct Source {
     source_type: String,  // Type de source
     database_url: String,  // URL de la base de données
 }
@@ -86,7 +88,7 @@ struct Source {
 // Structure pour insérer des nœuds dans la table des nœuds
 #[derive(Insertable)]
 #[diesel(table_name = cluster_node)]
-struct ClusterNode {
+pub struct ClusterNode {
     cluster_name: String,  // Nom du cluster
     hostname: String,  // Nom d'hôte
     ip_address: String,  // Adresse IP
@@ -98,7 +100,7 @@ struct ClusterNode {
 // Structure pour insérer des configurations dans la table de configuration
 #[derive(Insertable)]
 #[diesel(table_name = cluster_configuration)]
-struct ClusterConfiguration {
+pub struct ClusterConfiguration {
     cluster_name: String,  // Nom du cluster
     talos_version: String,  // Version de Talos
     endpoint: String,  // Point de terminaison
@@ -108,7 +110,7 @@ struct ClusterConfiguration {
 
 // Structure pour représenter un cluster
 #[derive(Serialize, Deserialize)]
-struct Cluster {
+pub struct Cluster {
     cluster_name: String,  // Nom du cluster
     talos_version: String,  // Version de Talos
     endpoint: String,  // Point de terminaison

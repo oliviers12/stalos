@@ -6,6 +6,7 @@ use serde_yaml;
 // mod schema; // Commenté ou supprimé
 // definir les structure depuit le shema
 use crate::schema;
+use crate::datasource;
 
 pub async fn edit_cluster(cluster_name: web::Path<String>) -> impl Responder {
     let cluster_name = cluster_name.into_inner();
@@ -108,12 +109,12 @@ pub async fn save_yaml(cluster_name: web::Path<String>, yaml_content: web::Json<
     match cluster_config {
         Ok(config) => {
             // Appeler create_or_update_cluster avec la configuration
-            match datasource::create_or_update_cluster(&cluster_name, &config).await {
+            match datasource::create_or_update_cluster(&cluster_name, &config, data).await {
                 Ok(_) => HttpResponse::Ok().body("Données enregistrées avec succès."),
                 Err(err) => {
-                    error!("Erreur lors de l'enregistrement des données pour {}: {:?}", cluster_name, err);
-                    HttpResponse::InternalServerError().body("Erreur lors de l'enregistrement des données.")
-                },
+                    error!("Erreur lors de la création du cluster: {:?}", err);
+                    HttpResponse::InternalServerError().body("Erreur lors de la création du cluster.")
+                }
             }
         }
         Err(err) => {

@@ -13,6 +13,7 @@ mod datasource_postgresql;
 
 // definir les structure depuit le shema
 use crate::schema::*;
+use crate::datasource::Database;
 
 async fn create_cluster(cluster_name: web::Json<String>, data: web::Data<Database>) -> impl Responder {
     let cluster_data = match datasource::get_cluster_data(&cluster_name).await {
@@ -44,7 +45,7 @@ async fn create_cluster(cluster_name: web::Json<String>, data: web::Data<Databas
 
 async fn delete_cluster(cluster_name: web::Path<String>, data: web::Data<Database>) -> impl Responder {
     // Appeler la fonction pour supprimer la source du cluster
-    let response = datasource::remove_cluster_source(cluster_name.into_inner(), data).await;
+    let response = datasource::delete_cluster_source(cluster_name.into_inner(), data).await;
 
     HttpResponse::Ok().body(format!("Cluster {} supprimé.", cluster_name))
 }
