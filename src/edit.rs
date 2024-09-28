@@ -54,7 +54,7 @@ fn render_html(cluster_name: &str, yaml_content: &str) -> String {
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Configuration Cluster</title>
-        <link rel="stylesheet" href="/static/styles.css"> <!-- Lien vers le CSS externe -->
+        <link rel="stylesheet" href="/static/styles.css">
     </head>
     <body>
         <h1>Configuration Cluster: {}</h1>
@@ -129,7 +129,7 @@ fn is_valid_yaml(yaml_data: &str) -> bool {
     !yaml_data.trim().is_empty() // Remplacez par une logique de validation plus robuste si nécessaire
 }
 
-pub async fn edit_cluster(cluster_name: web::Path<String>) -> impl Responder {
+pub async fn edit_cluster_web(cluster_name: web::Path<String>) -> impl Responder {
     let cluster_name = cluster_name.into_inner();
 
     // Récupérer les données du cluster depuis datasource.rs
