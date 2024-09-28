@@ -2,10 +2,9 @@
 use diesel::prelude::*;
 
 // fichier suplementiare
-mod schema;
-
+// mod schema; // Commenté ou supprimé
 // definir les structure depuit le shema
-use crate::schema::*;
+use crate::schema;
 
 // Implémentation de la base de données
 impl Database {

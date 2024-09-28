@@ -3,9 +3,9 @@ use actix_web::{web, HttpResponse, Responder};
 use serde_yaml; 
 
 // fichier suplementiare
-mod schema;
+// mod schema; // Commenté ou supprimé
 // definir les structure depuit le shema
-use crate::schema::*;
+use crate::schema;
 
 pub async fn edit_cluster(cluster_name: web::Path<String>) -> impl Responder {
     let cluster_name = cluster_name.into_inner();

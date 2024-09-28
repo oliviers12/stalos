@@ -3,12 +3,9 @@ use actix_web::{web, App, HttpResponse, HttpServer};
 use serde::Deserialize;
 
 // fichier suplementiare
-mod schema;
-mod edit;
-mod deploiement;
-mod datasource_postgresql;
-
-// definir les structure depuit le shema
+use crate::edit;
+use crate::deploiement;
+use crate::datasource_postgresql;
 use crate::schema::*;
 
 // Structure de base de données
