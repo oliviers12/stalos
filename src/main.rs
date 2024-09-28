@@ -15,10 +15,14 @@ mod datasource_postgresql;
 use crate::schema::*;
 
 async fn create_cluster(cluster_name: web::Json<String>, data: web::Data<Database>) -> impl Responder {
-    // Récupération des données de configuration
-    let cluster_data = datasource::get_cluster_data(&cluster_name).await;
+    let cluster_data = match datasource::get_cluster_data(&cluster_name).await {
+        Ok(data) => data,
+        Err(err) => {
+            error!("Erreur lors de la récupération des données de configuration: {:?}", err);
+            return HttpResponse::InternalServerError().body("Erreur lors de la récupération des données de configuration.");
+        }
+    };
 
-    // Création de la configuration par défaut
     let default_cluster = Config {
         cluster_name: cluster_name.clone(),
         talos_version: cluster_data.talos_version.unwrap_or("v1.7.6".to_string()),
@@ -28,13 +32,14 @@ async fn create_cluster(cluster_name: web::Json<String>, data: web::Data<Databas
         nodes: cluster_data.nodes,
     };
 
-    // Appeler la fonction pour créer ou mettre à jour le cluster
-    let response = datasource::create_or_update_cluster(&cluster_name, default_cluster, data).await;
-
-
-    HttpResponse::Created().body(format!("Cluster {} créé.", cluster_name))
+    match datasource::create_or_update_cluster(&cluster_name, default_cluster, data).await {
+        Ok(_) => HttpResponse::Created().body(format!("Cluster {} créé.", cluster_name)),
+        Err(err) => {
+            error!("Erreur lors de la création du cluster: {:?}", err);
+            HttpResponse::InternalServerError().body("Erreur lors de la création du cluster.")
+        }
+    }
 }
-
 
 async fn delete_cluster(cluster_name: web::Path<String>, data: web::Data<Database>) -> impl Responder {
     // Appeler la fonction pour supprimer la source du cluster
@@ -127,17 +132,21 @@ async fn list_clusters() -> impl Responder {
         async function createCluster() {
             const clusterName = document.getElementById("clusterName").value;
             console.log(`Création du cluster : ${clusterName}`);
-            const response = await fetch(`/cluster/create`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(clusterName)
-            });
-            if (response.ok) {
-                window.location.reload();
-            } else {
-                alert('Échec de la création du cluster.');
+            try {
+                const response = await fetch(`/cluster/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(clusterName)
+                });
+                if (response.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Échec de la création du cluster.');
+                }
+            } catch (error) {
+                alert('Erreur lors de la création du cluster : ' + error.message);
             }
         }
 
