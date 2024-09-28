@@ -170,17 +170,21 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             // Route pour la liste des clusters
-            .route("/", web::get().to(list_clusters))
-            .route("/cluster/create", web::post().to(create_cluster))
-            .route("/cluster/{cluster_name}/delete", web::delete().to(delete_cluster))
-            .route("/cluster/{cluster_name}/edit", web::get().to(edit::edit_cluster))
-            .route("/cluster/{cluster_name}/deployer", web::get().to(deploiement::deploy_talos))
-            .route("/gestion_source", web::get().to(datasource::gestion_source))
+            .route("/", web::get().to(menu))
+            .route("/cluster/{data_source}/list", web::get().to(list_cluster))
+            .route("/cluster/{data_source}/create", web::post().to(create_cluster))
+            .route("/cluster/{data_source}/delete", web::delete().to(delete_cluster))
+            .route("/cluster/{cluster_id}/get", web::get().to(edit::get_cluster))
+            .route("/cluster/{cluster_id}/edit", web::get().to(edit::edit_cluster))
+            // Routes pour la gestion des sources de données
+            .route("/source/menu", web::get().to(datasource::menu))
+            .route("/source/list", web::post().to(datasource::list_source))
             .route("/source/create", web::post().to(datasource::create_source))
-            .route("/source/{source_name}/delete", web::delete().to(datasource::delete_source))
-            .route("/source/{cluster_name}/edit", web::post().to(datasource::edit_cluster_source))
-            .route("/source/{cluster_name}/get", web::post().to(datasource::get_cluster_source))
-            // Ajoutez d'autres routes selon vos besoins
+            .route("/source/delete", web::delete().to(datasource::delete_source))
+            .route("/source/{data_source}/get", web::get().to(datasource::get_source))
+            .route("/source/{data_source}/edit", web::post().to(datasource::edit_source))
+            // Routes de déploiement (ajoutez selon vos besoins)
+            // .route("/deploiement/{cluster_id}", web::post().to(deploiement::deploy_cluster))
     })
     .bind("127.0.0.1:8080")?
     .run()

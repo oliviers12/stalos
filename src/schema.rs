@@ -1,8 +1,6 @@
-// shema.rs
 use diesel::{table, Insertable};
 use serde::{Deserialize, Serialize};
 
-// les macros table! sont propre a Diesel
 // Définition de la table des nœuds de cluster
 table! {
     cluster_node (id) {
@@ -28,9 +26,30 @@ table! {
     }
 }
 
+// Définition de la table de datacluster
+table! {
+    datacluster (clusterid) {
+        clusterid -> Varchar,  // Nom du cluster
+        datasource -> Varchar,  // emplacement ou les données sont stockées
+        createdate -> Varchar,  // date de création du cluster
+        editdate -> Varchar,  // date de dernière modification du cluster
+    }
+}
+
+// Structure pour configurer un datacluster
+#[derive(Serialize, Deserialize, Insertable)]
+#[diesel(table_name = datacluster)]
+pub struct DataCluster {
+    clusterid: String,  // Nom du cluster
+    datasource: String,  // emplacement ou les données sont stockées
+    createdate: String,  // date de création du cluster
+    editdate: String,  // date de dernière modification du cluster
+    clusters: Vec<Cluster>,  // Structures pour représenter un cluster
+}
+
 // Structure pour configurer un cluster
-#[derive(Deserialize)]
-pub struct Config {
+#[derive(Serialize, Deserialize)]
+pub struct Cluster {
     cluster_name: String,  // Nom du cluster
     talos_version: String,  // Version de Talos
     endpoint: String,  // Point de terminaison
@@ -40,13 +59,13 @@ pub struct Config {
 }
 
 // Structure pour la configuration CNI
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CniConfig {
     name: String,  // Nom de la configuration CNI
 }
 
 // Structure représentant un nœud
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Node {
     hostname: String,  // Nom d'hôte du nœud
     ip_address: String,  // Adresse IP
@@ -76,45 +95,4 @@ pub struct Route {
 #[derive(Serialize, Deserialize)]
 pub struct DeviceSelector {
     driver: String,  // Driver du périphérique
-}
-
-// Structure pour ajouter une source de données
-#[derive(Deserialize)]
-pub struct Source {
-    source_type: String,  // Type de source
-    database_url: String,  // URL de la base de données
-}
-
-// Structure pour insérer des nœuds dans la table des nœuds
-#[derive(Insertable)]
-#[diesel(table_name = cluster_node)]
-pub struct ClusterNode {
-    cluster_name: String,  // Nom du cluster
-    hostname: String,  // Nom d'hôte
-    ip_address: String,  // Adresse IP
-    control_plane: bool,  // Indicateur de plan de contrôle
-    arch: String,  // Architecture
-    install_disk: String,  // Disque d'installation
-}
-
-// Structure pour insérer des configurations dans la table de configuration
-#[derive(Insertable)]
-#[diesel(table_name = cluster_configuration)]
-pub struct ClusterConfiguration {
-    cluster_name: String,  // Nom du cluster
-    talos_version: String,  // Version de Talos
-    endpoint: String,  // Point de terminaison
-    domain: String,  // Domaine
-    cni_config_name: String,  // Nom de la configuration CNI
-}
-
-// Structure pour représenter un cluster
-#[derive(Serialize, Deserialize)]
-pub struct Cluster {
-    cluster_name: String,  // Nom du cluster
-    talos_version: String,  // Version de Talos
-    endpoint: String,  // Point de terminaison
-    domain: String,  // Domaine
-    cni_config: CniConfig,  // Configuration CNI
-    nodes: Vec<Node>,  // Liste des nœuds
 }
