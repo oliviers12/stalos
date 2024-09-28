@@ -3,12 +3,9 @@ use actix_web::{web, App, HttpResponse, HttpServer};
 use serde::Deserialize;
 
 // fichier suplementiare
-mod schema;
-mod edit;
-mod deploiement;
-mod datasource_postgresql;
-
-// definir les structure depuit le shema
+use crate::edit;
+use crate::deploiement;
+use crate::datasource_postgresql;
 use crate::schema::*;
 
 // Structure de base de données
@@ -30,7 +27,7 @@ pub async fn create_or_update_cluster(cluster_name: &str, config: Config, data: 
     HttpResponse::Ok().body("Cluster updated successfully!")
 }
 
-ub async fn delete_cluster_source(cluster_name: String, data: web::Data<Database>) -> HttpResponse {
+pub async fn delete_cluster_source(cluster_name: String, data: web::Data<Database>) -> HttpResponse {
     // Appeler la fonction de suppression dans datasource_postgresql
     datasource_postgresql::remove_cluster_source(cluster_name, data).await;
     HttpResponse::Ok().body("Cluster source deleted successfully!")

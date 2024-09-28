@@ -1,4 +1,6 @@
 // shema.rs
+use diesel::{table, Insertable};
+use serde::{Deserialize, Serialize};
 // Définition de la table des nœuds de cluster
 table! {
     cluster_node (id) {

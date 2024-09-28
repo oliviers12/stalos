@@ -3,9 +3,9 @@ use actix_web::{web, HttpResponse, Responder};
 use serde_yaml; 
 
 // fichier suplementiare
-mod schema;
+// mod schema; // Commenté ou supprimé
 // definir les structure depuit le shema
-use crate::schema::*;
+use crate::schema;
 
 pub async fn edit_cluster(cluster_name: web::Path<String>) -> impl Responder {
     let cluster_name = cluster_name.into_inner();
@@ -127,5 +127,3 @@ pub async fn save_yaml(cluster_name: web::Path<String>, yaml_content: web::Json<
 fn is_valid_yaml(yaml_data: &str) -> bool {
     // Implémentez une validation de base pour vérifier si le YAML est bien formé
     !yaml_data.trim().is_empty() // Remplacez par une logique de validation plus robuste si nécessaire
-}
-
