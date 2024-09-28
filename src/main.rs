@@ -15,25 +15,48 @@ mod datasource_postgresql;
 use crate::schema::*;
 use crate::datasource::Database;
 
-async fn create_cluster(cluster_name: web::Json<String>, data: web::Data<Database>) -> impl Responder {
-    let cluster_data = match datasource::get_cluster_data(&cluster_name).await {
-        Ok(data) => data,
-        Err(err) => {
-            error!("Erreur lors de la récupération des données de configuration: {:?}", err);
-            return HttpResponse::InternalServerError().body("Erreur lors de la récupération des données de configuration.");
-        }
-    };
 
-    let default_cluster = Config {
+async fn list_clusters() -> impl Responder {
+    // Initialise la variable pour stocker les clusters
+    let mut list_clusters = Vec::new();
+
+    // Récupère la liste des sources de données
+    let source_list = datasource::list_source().await;
+
+    // Itère à travers chaque source de données
+    for source in source_list {
+        match datasource::list_clusters(&source).await {
+            Ok(clusters) => {
+                for cluster in clusters {
+                    list_clusters.push(cluster);
+                }
+            },
+            Err(err) => {
+                // Gestion des erreurs : ajoute un message d'erreur à la liste des clusters
+                list_clusters.push(format!("Erreur avec la source {}: {:?}", source, err));
+            }
+        }
+    }
+
+    // Retourne la liste des clusters ou des messages d'erreur
+    HttpResponse::Ok().json(list_clusters)
+}
+
+
+async fn create_cluster(DataCluster: web::Json<Config>, data: web::Data<Database>) -> impl Responder {
+    // Valeurs par défaut si les données ne sont pas fournies par le web
+    let cluster_name = DataCluster.cluster_name.clone();
+    let config = Config {
         cluster_name: cluster_name.clone(),
-        talos_version: cluster_data.talos_version.unwrap_or("v1.7.6".to_string()),
+        talos_version: DataCluster.talos_version.clone().unwrap_or_else(|| "v1.7.6".to_string()),
         endpoint: format!("https://{}:6443", cluster_name),
         domain: "domain.local".to_string(),
         cni_config: CniConfig { name: "none".to_string() },
-        nodes: cluster_data.nodes,
+        nodes: DataCluster.nodes.clone(),
     };
 
-    match datasource::create_or_update_cluster(&cluster_name, default_cluster, data).await {
+    // Appeler la fonction de création de cluster avec les données de configuration
+    match datasource::create_cluster(&cluster_name, config, data).await {
         Ok(_) => HttpResponse::Created().body(format!("Cluster {} créé.", cluster_name)),
         Err(err) => {
             error!("Erreur lors de la création du cluster: {:?}", err);
@@ -43,16 +66,18 @@ async fn create_cluster(cluster_name: web::Json<String>, data: web::Data<Databas
 }
 
 
-async fn delete_cluster(cluster_name: web::Path<String>, data: web::Data<Database>) -> impl Responder {
+async fn delete_cluster(DataCluster: web::Path<String>, data: web::Data<Database>) -> impl Responder {
     // Appeler la fonction pour supprimer la source du cluster
     let response = datasource::delete_cluster_source(cluster_name.into_inner(), data).await;
 
     HttpResponse::Ok().body(format!("Cluster {} supprimé.", cluster_name))
 }
 
-async fn list_clusters() -> impl Responder {
-    // Récupération des données de configuration
-    let clusters = datasource::get_all_clusters().await;
+async fn menu() -> impl Responder {
+    // Liste de tous les clusters
+    let cluster_list = list_clusters().await;
+    // Liste de toutes les sources
+    let source_list = datasource::list_source().await;
 
     // Construire le HTML
     let mut html = String::new();
@@ -84,12 +109,13 @@ async fn list_clusters() -> impl Responder {
 
     <div class=\"header\">
         <h1>Liste des Clusters</h1>
-        <a class=\"button\" href=\"/gestion_source\">Gérer les Sources</a>
+        <a class=\"button\" href=\"/source/menu\">Gérer les Sources</a>
     </div>
     <table>
         <thead>
             <tr>
                 <th>Nom du Cluster</th>
+                <th>Source de Donnée</th>
                 <th>Modifier</th>
                 <th>Supprimer</th>
                 <th>Déployer</th>
@@ -97,15 +123,16 @@ async fn list_clusters() -> impl Responder {
         </thead>
         <tbody>");
 
-    for cluster in clusters {
+    for cluster in cluster_list {
         html.push_str(&format!(
             "<tr>
+                <td>{}</td>
                 <td>{}</td>
                 <td><button class=\"button\" onclick=\"editCluster('{}')\">Modifier</button></td>
                 <td><button class=\"button\" onclick=\"deleteCluster('{}')\">Supprimer</button></td>
                 <td><a class=\"button\" href=\"/cluster/{}/deployer\">Déployer</a></td>
             </tr>",
-            cluster.cluster_name, cluster.cluster_name, cluster.cluster_name, cluster.cluster_name
+            cluster.cluster_name, cluster.datasource, cluster.cluster_name, cluster.cluster_name, cluster.cluster_name
         ));
     }
 
@@ -115,15 +142,25 @@ async fn list_clusters() -> impl Responder {
     <h2>Créer un Cluster</h2>
     <form id="createClusterForm" onsubmit="createCluster(); return false;">
         <input type="text" id="clusterName" name="cluster_name" placeholder="Nom du Cluster" required>
+        <select id="dataSource" name="data_source" required>"#);
+
+    for source in source_list {
+        html.push_str(&format!("<option value=\"{}\">{}</option>", source.name, source.name));
+    }
+
+    html.push_str(r#"</select>
         <button class="button">Créer</button>
     </form>
 
     <h2><a href="/gestion_source">Gérer les Sources</a></h2> <!-- Lien vers la gestion des sources -->
 
     <script>
-        async function deleteCluster(clusterName) {
-            console.log(`Suppression du cluster : ${clusterName}`);
-            const response = await fetch(`/cluster/${clusterName}/delete`, { method: 'DELETE' });
+        async function deleteCluster(clusterid) {
+            const dataSource = document.getElementById("dataSource").value;
+            console.log(`Suppression du cluster : ${clusterid} dans ${dataSource}`);
+            const response = await fetch(`/cluster/${dataSource}/delete`, {
+                method: 'DELETE'
+            });
             if (response.ok) {
                 window.location.reload();
             } else {
@@ -133,22 +170,19 @@ async fn list_clusters() -> impl Responder {
 
         async function createCluster() {
             const clusterName = document.getElementById("clusterName").value;
-            console.log(`Création du cluster : ${clusterName}`);
-            try {
-                const response = await fetch(`/cluster/create`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(clusterName)
-                });
-                if (response.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Échec de la création du cluster.');
-                }
-            } catch (error) {
-                alert('Erreur lors de la création du cluster : ' + error.message);
+            const dataSource = document.getElementById("dataSource").value;
+            console.log(`Création du cluster : ${clusterName} dans ${dataSource}`);
+            const response = await fetch(`/cluster/${dataSource}/create`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ cluster_name: clusterName })
+            });
+            if (response.ok) {
+                window.location.reload();
+            } else {
+                alert('Échec de la création du cluster.');
             }
         }
 
@@ -163,7 +197,6 @@ async fn list_clusters() -> impl Responder {
     
     HttpResponse::Ok().content_type("text/html").body(html)
 }
-
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {

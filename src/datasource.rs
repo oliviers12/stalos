@@ -8,6 +8,9 @@ use crate::deploiement;
 use crate::datasource_postgresql;
 use crate::schema::*;
 
+// ne pas oublier de crer les fonction
+// create_cluster, list_source
+
 // Structure de base de données
 pub struct Database {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,

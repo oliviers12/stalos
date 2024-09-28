@@ -38,6 +38,17 @@ table! {
 
 // Structure pour configurer un datacluster
 #[derive(Serialize, Deserialize, Insertable)]
+pub struct Datasource {
+    sourceid: String,  // Nom du source
+    typedata: String,  // le type comme posgrsql
+    argdata: String, // data de la source comme l'url posgrsql
+    createdate: String,  // date de création du source
+    editdate: String,  // date de dernière modification de la configuration de source
+
+}
+
+// Structure pour configurer un datacluster
+#[derive(Serialize, Deserialize, Insertable)]
 #[diesel(table_name = datacluster)]
 pub struct DataCluster {
     clusterid: String,  // Nom du cluster
