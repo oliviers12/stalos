@@ -65,8 +65,8 @@ async fn create_cluster(DataCluster: web::Json<Config>, data: web::Data<Database
     }
 }
 
-
 async fn delete_cluster(DataCluster: web::Path<String>, data: web::Data<Database>) -> impl Responder {
+ main
     // Appeler la fonction pour supprimer la source du cluster
     let response = datasource::delete_cluster_source(cluster_name.into_inner(), data).await;
 
