@@ -30,7 +30,7 @@ pub async fn create_or_update_cluster(cluster_name: &str, config: Config, data: 
     HttpResponse::Ok().body("Cluster updated successfully!")
 }
 
-ub async fn delete_cluster_source(cluster_name: String, data: web::Data<Database>) -> HttpResponse {
+pub async fn delete_cluster_source(cluster_name: String, data: web::Data<Database>) -> HttpResponse {
     // Appeler la fonction de suppression dans datasource_postgresql
     datasource_postgresql::remove_cluster_source(cluster_name, data).await;
     HttpResponse::Ok().body("Cluster source deleted successfully!")
