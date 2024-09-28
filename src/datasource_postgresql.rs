@@ -68,6 +68,11 @@ impl Database {
     
         results
     }
+    
+    pub async fn establish_connection() -> PgConnection {
+        let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+        PgConnection::establish(&database_url).expect(&format!("Error connecting to {}", database_url))
+    }
 
     // Mise à jour d'une source de cluster
     pub async fn edit_cluster_source(web::Path(cluster_name): web::Path<String>, json: web::Json<Config>, data: web::Data<Database>) -> HttpResponse {

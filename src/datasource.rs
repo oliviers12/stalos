@@ -8,6 +8,9 @@ use crate::deploiement;
 use crate::datasource_postgresql;
 use crate::schema::*;
 
+// ne pas oublier de crer les fonction
+// create_cluster, list_source
+
 // Structure de base de données
 pub struct Database {
     pool: r2d2::Pool<ConnectionManager<PgConnection>>,
@@ -166,4 +169,20 @@ async fn gestion_source() -> impl Responder {
     
     // Retourne la réponse HTML
     HttpResponse::Ok().content_type("text/html").body(html)
+}
+
+pub async fn create_source() -> impl Responder {
+    // Implementation
+}
+
+pub async fn delete_source() -> impl Responder {
+    // Implementation
+}
+
+pub async fn edit_cluster_source() -> impl Responder {
+    // Implementation
+}
+
+pub async fn get_cluster_source() -> impl Responder {
+    // Implementation
 }
