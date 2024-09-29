@@ -128,4 +128,3 @@ pub async fn save_yaml(cluster_name: web::Path<String>, yaml_content: web::Json<
 fn is_valid_yaml(yaml_data: &str) -> bool {
     // Implémentez une validation de base pour vérifier si le YAML est bien formé
     !yaml_data.trim().is_empty() // Remplacez par une logique de validation plus robuste si nécessaire
-}
