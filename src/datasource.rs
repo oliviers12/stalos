@@ -99,32 +99,29 @@ async fn menu() -> impl Responder {
 }
 
 pub async fn list_source() -> HttpResponse {
-    // Code pour lister toutes les sources de données à partir de source.json
-    // À implémenter
+    let paths = std_fs::read_dir("./sources").unwrap();
+    // il faut retourer les nom des sourceid de ./sources
     HttpResponse::Ok().body("Liste de toutes les sources de données")
 }
 
 pub async fn create_source(source: web::Json<DataSource>, data: web::Data<Database>) -> HttpResponse {
-    // Code pour ajouter une source de données et rediriger vers edit_source
-    // À implémenter
+    datasource_postgresql::new_database(Datasource,DataCluster)
     HttpResponse::Ok().body("Source de données créée")
 }
 
 pub async fn delete_source(sourceid: web::Path<String>, data: web::Data<Database>) -> HttpResponse {
-    // Code pour supprimer une source de données
-    // À implémenter
+    let paths = std_fs::read_dir("./sources").unwrap();
+    // il faux surpimer le sourceid de ./sources
     HttpResponse::Ok().body("Source de données supprimée")
 }
 
 pub async fn get_source(sourceid: web::Path<String>, data: web::Data<Database>) -> HttpResponse {
-    // Code pour obtenir une source de données spécifique
-    // À implémenter
+    datasource_postgresql::get_database(Datasource,cluster_id)
     HttpResponse::Ok().body("Détails de la source de données")
 }
 
 pub async fn edit_source(sourceid: web::Path<String>, source: web::Json<DataSource>, data: web::Data<Database>) -> HttpResponse {
-    // Code pour modifier les paramètres d'une source de données
-    // À implémenter
+    datasource_postgresql::new_database(Datasource,DataCluster)
     HttpResponse::Ok().body("Source de données modifiée")
 }
 
@@ -145,11 +142,24 @@ pub async fn edit_cluster(cluster: web::Json<DataSource>, data: web::Data<Databa
     let datasource = &cluster.sourceid;
     let config = &cluster.details;
 
-    match datasource_postgresql::edit_cluster_source(datasource, config, data).await {
+    match datasource_postgresql::edit_cluster_database(datasource, config, data).await {
         Ok(_) => HttpResponse::Ok().body("Cluster modifié avec succès."),
         Err(err) => {
             error!("Erreur lors de la modification du cluster: {:?}", err);
             HttpResponse::InternalServerError().body("Erreur lors de la modification du cluster.")
+        }
+    }
+}
+
+pub async fn remove_cluster(cluster: web::Json<DataSource>, data: web::Data<Database>) -> HttpResponse {
+    let datasource = &cluster.sourceid;
+    let config = &cluster.details;
+
+    match datasource_postgresql::remove_cluster_database(datasource, config, data).await {
+        Ok(_) => HttpResponse::Ok().body("suprimer Cluster avec succès."),
+        Err(err) => {
+            error!("Erreur lors de la suprimer du cluster: {:?}", err);
+            HttpResponse::InternalServerError().body("Erreur lors de la suprimer du cluster.")
         }
     }
 }
