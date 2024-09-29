@@ -43,21 +43,11 @@ async fn list_clusters() -> impl Responder {
 }
 
 
-async fn create_cluster(DataCluster: web::Json<Config>, data: web::Data<Database>) -> impl Responder {
-    // Valeurs par défaut si les données ne sont pas fournies par le web
-    let cluster_name = DataCluster.cluster_name.clone();
-    let config = Config {
-        cluster_name: cluster_name.clone(),
-        talos_version: DataCluster.talos_version.clone().unwrap_or_else(|| "v1.7.6".to_string()),
-        endpoint: format!("https://{}:6443", cluster_name),
-        domain: "domain.local".to_string(),
-        cni_config: CniConfig { name: "none".to_string() },
-        nodes: DataCluster.nodes.clone(),
-    };
+async fn create_cluster(cluster: web::Json<DataCluster>) -> impl Responder {
+    let datasource = &cluster.datasource;
 
-    // Appeler la fonction de création de cluster avec les données de configuration
-    match datasource::create_cluster(&cluster_name, config, data).await {
-        Ok(_) => HttpResponse::Created().body(format!("Cluster {} créé.", cluster_name)),
+    match datasource::create_cluster(datasource).await {
+        Ok(_) => HttpResponse::Created().body(format!("Cluster {} créé.", datasource.clusterid)),
         Err(err) => {
             error!("Erreur lors de la création du cluster: {:?}", err);
             HttpResponse::InternalServerError().body("Erreur lors de la création du cluster.")
@@ -65,12 +55,22 @@ async fn create_cluster(DataCluster: web::Json<Config>, data: web::Data<Database
     }
 }
 
-async fn delete_cluster(DataCluster: web::Path<String>, data: web::Data<Database>) -> impl Responder {
- main
-    // Appeler la fonction pour supprimer la source du cluster
-    let response = datasource::delete_cluster_source(cluster_name.into_inner(), data).await;
 
-    HttpResponse::Ok().body(format!("Cluster {} supprimé.", cluster_name))
+// Function to delete a cluster
+async fn delete_cluster(DataCluster: web::Path<DataCluster>) -> impl Responder {
+    // Extract cluster id
+    let clusterid = DataCluster.clusterid.clone();
+    
+    // Call the function to delete the cluster source
+    let response = datasource::delete_cluster_source(clusterid.clone(), data).await;
+
+    match response {
+        Ok(_) => HttpResponse::Ok().body(format!("Cluster {} supprimé.", clusterid)),
+        Err(err) => {
+            error!("Erreur lors de la suppression du cluster: {:?}", err);
+            HttpResponse::InternalServerError().body("Erreur lors de la suppression du cluster.")
+        }
+    }
 }
 
 async fn menu() -> impl Responder {
