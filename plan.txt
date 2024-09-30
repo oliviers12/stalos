@@ -1,0 +1,89 @@
+//main.rs
+async fn menu(){
+    //
+}
+async fn menu_edit(data_cluster)-> data_cluster{
+    //
+}
+
+//shema.rs
+
+//datasource.rs
+pub async fn list_source()-> list_source{
+    // liste les diferante "source_id" dans le "source.json"
+    // il faut prendre les "source_id" et leurs "typedata" et les mettre dans la variable "list_source"
+}
+pub async fn list_cluster(list_source: String)-> list_cluster{
+    // pour tout les "source_id" elle faut qu'il liste tout les "cluster_id"
+    // il faut prendre les "cluster_id" et leurs "source_id" et les mettre dans la variable "list_cluster"
+}
+pub async fn get_source(source_id: String)-> data_source{
+    // va interoger le fichier de config ./source.json pour voir si la "source_id" existe.
+    // si elle exite elle va récuperer la configuration de la source et la mettre dans la variable "data_source"
+    
+}
+pub async fn get_cluster(cluster_id: String, source_id: String)-> data_cluster{
+    // va interoger la "source_id" pour voir si la "cluster_id" existe.
+    // si elle exite elle va récuperer la configuration du cluster et la mettre dans la variable "data_cluster"
+    let data_source = get_source(source_id)
+    let argdata = data_source.argdata
+    let typedata = data_source.typedata
+    // apperler un fonciton sauf avec la varaible "typedata" pour determiner dans quel fichier il va chercher.
+    let data_cluster = if typedata == "postgresql" {
+        datasource_postgresql::get_cluster_database(argdata).await
+    } else if typedata == "file" {
+        datasource_file::get_cluster_database(argdata).await
+    } else {
+        panic!("Type de données non pris en charge")
+    };
+    
+    data_cluster
+}
+pub async fn edit_source(data_source: String)-> {
+    // récupere le "data_source.source_id"
+    // prend data_source et va l'ecrire en json dans le ./source.json a l'enplacement de la source_id
+}
+pub async fn edit_cluster(data_cluster: String)-> {
+    // récupere le "data_cluster.source_id" et le "data_cluster.cluster_id"
+    // prend data_cluster et va l'ecrire dans le "source_id"
+    // let data_source=get_source
+}
+pub async fn create_source(source_id: String)-> {
+    // va sasurer que le source_id existe pa deja.
+    // inisialiser la varaible "data_source".
+    // creer les entrer nessesair
+}
+pub async fn create_cluster(cluster_id: String, source_id: String)-> {
+    // va sasurer que le cluster_id existe pas deja dans le source_id.
+    // inisialiser la varaible "data_cluster".
+    // creer les entrer nessesair
+}
+pub async fn remove_source(data_source: String)-> {
+    // récupere le "data_source.source_id"
+    // suprime le source_id et les varaible qui venne avec du "source.json"
+}
+pub async fn remove_cluster(data_cluster: String)-> {
+    // récupere le "data_cluster.source_id" et le "data_cluster.cluster_id"
+    // suprime le source_id et les varaible qui venne avec du "source.json"
+}
+
+
+//datasource_postgresql.rs
+pub async fn init_database(data_cluster: String){
+    // inisalise les table "datacluster" utilliser dans la database
+}
+pub async fn get_list_database()-> list_cluster_id {
+    // liste tout les cluster present dans la table 
+}
+pub async fn get_cluster_database(cluster_id: String)-> data_cluster {
+    // prend le "cluster_id" et va récupérer les information assosier
+}
+pub async fn edit_cluster_database(data_cluster: String){
+    // modifier les table selon les information du "data_cluster"
+}
+pub async fn create_cluster_database(data_cluster: String){
+    // creer un entrer dans la basede donner avec le "data_cluster"
+}
+pub async fn remove_cluster_database(data_cluster: String){
+    // récupere le "data_cluster.cluster_id" et suprimer les donner assosier au cluster_id
+}
